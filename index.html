@@ -170,7 +170,7 @@
 </div>
 
 <script>
-  const girlName = new URLSearchParams(window.location.search).get("name") || "Yemu";
+  const girlName = new URLSearchParams(window.location.search).get("name") || "Tyra";
   let noClickCount = 0;
 
   // Pages
@@ -286,20 +286,21 @@
   }
 
   // Save responses
-  function saveResponse(type, noCount = 0) {
-    const data = {
-      name: girlName,
-      response: type,
-      noClicks: noCount
-    };
+  function saveResponse(answer) {
+    const name = "Her Name"; // or remove if not needed
+    const noClicks = localStorage.getItem("noClicks") || 0;
 
-    // Send to Google Sheets
-    const url = "https://script.google.com/macros/s/AKfycbzTYbt3YfaC9mepprXMi_3imZ7E5eA65e7uqZLdZkdW9N405AIwzYZoXEZL3A5NTrYo/exec";
+    const baseURL = "https://script.google.com/macros/s/AKfycbzTYbt3YfaC9mepprXMi_3imZ7E5eA65e7uqZLdZkdW9N405AIwzYZoXEZL3A5NTrYo/exec";
+    const url = `${baseURL}?name=${encodeURIComponent(name)}&response=${encodeURIComponent(answer)}&noClicks=${noClicks}`;
 
-    fetch(`${url}?name=${encodeURIComponent(data.name)}&response=${encodeURIComponent(data.response)}&noClicks=${data.noClicks}`)
-            .then(res => console.log("Saved:", res))
-            .catch(err => console.error("Error saving:", err));
+    fetch(url)
+            .then(res => res.text())
+            .then(data => {
+              console.log("Saved:", data);
+            })
+            .catch(err => console.error("Error:", err));
   }
+
 
 
   // Floating hearts
