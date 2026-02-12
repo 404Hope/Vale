@@ -286,12 +286,21 @@
   }
 
   // Save responses
-  function saveResponse(type,noCount=0){
-    const data={name:girlName,response:type,noClicks:noCount,time:new Date().toISOString()};
-    let responses=JSON.parse(localStorage.getItem("valentineResponses")||"[]");
-    responses.push(data);
-    localStorage.setItem("valentineResponses",JSON.stringify(responses));
+  function saveResponse(type, noCount = 0) {
+    const data = {
+      name: girlName,
+      response: type,
+      noClicks: noCount
+    };
+
+    // Send to Google Sheets
+    const url = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+    fetch(`${url}?name=${encodeURIComponent(data.name)}&response=${encodeURIComponent(data.response)}&noClicks=${data.noClicks}`)
+            .then(res => console.log("Saved:", res))
+            .catch(err => console.error("Error saving:", err));
   }
+
 
   // Floating hearts
   const heartContainer = document.getElementById('heartContainer');
