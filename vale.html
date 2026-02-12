@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flirty Valentine Adventure</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      background: #ffe6f0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .hidden { display: none; }
+
+    h1 { margin-top: 50px; color: #ff3366; }
+
+    button {
+      padding: 15px 30px;
+      font-size: 20px;
+      margin: 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #yesBtn { background-color: #ff3366; color: white; }
+    #noBtn { background-color: #ccc; color: black; }
+
+    button:hover {
+      transform: scale(1.1);
+    }
+
+    .message {
+      font-size: 20px;
+      color: #ff3366;
+      background: rgba(255,255,255,0.8);
+      padding: 10px 15px;
+      border-radius: 10px;
+      display: inline-block;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+    .message.show {
+      opacity: 1;
+    }
+
+
+    #confetti {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 20px;
+      animation: floatUp 3s linear infinite;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0); opacity:1; }
+      100% { transform: translateY(-500px); opacity:0; }
+    }
+
+    #heartContainer {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .heart {
+      position: absolute;
+      font-size: 20px;
+      animation: floatUp linear infinite;
+      opacity: 0.7;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh);
+        opacity: 0;
+      }
+    }
+
+    #page1 {
+      opacity: 0;
+      transition: opacity 2s ease;
+    }
+
+    #page1.show {
+      opacity: 1;
+    }
+    /* ===== Intro Overlay ===== */
+    #introOverlay {
+      position: fixed;
+      inset: 0;
+      background: #ff2e63; /* solid romantic base */
+      z-index: 9999;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    /* Subtle drawn hearts pattern using SVG tiling */
+    #introPattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.15;
+      background-image: url("data:image/svg+xml;utf8,\
+  <svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'>\
+    <path d='M40 66 C10 46 10 24 28 20 C36 18 40 24 40 24 C40 24 44 18 52 20 C70 24 70 46 40 66 Z' \
+    fill='none' stroke='white' stroke-width='2'/>\
+  </svg>");
+      background-size: 80px 80px;
+    }
+
+    /* Tap Heart */
+    #tapHeartWrap {
+      position: relative;
+      text-align: center;
+      user-select: none;
+    }
+
+    #tapHeart {
+      font-size: 120px;
+      line-height: 1;
+      animation: beat 1.1s ease-in-out infinite;
+      cursor: pointer;
+      filter: drop-shadow(0 10px 25px rgba(0,0,0,0.25));
+    }
+
+    #tapLabel {
+      margin-top: 8px;
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+    }
+
+    /* Beating animation */
+    @keyframes beat {
+      0%, 100% { transform: scale(1); }
+      25% { transform: scale(1.15); }
+      40% { transform: scale(0.98); }
+      60% { transform: scale(1.12); }
+      75% { transform: scale(1.02); }
+    }
+
+    /* Transition blast (expands heart + fade overlay) */
+    #introOverlay.blast #tapHeart {
+      animation: none;
+      transform: scale(14);
+      transition: transform 900ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    #introOverlay.fadeOut {
+      opacity: 0;
+      transition: opacity 600ms ease 300ms;
+      pointer-events: none;
+    }
+
+    /* Optional: ensure your first page fades in nicely */
+    #page1 {
+      opacity: 0;
+      transition: opacity 700ms ease;
+    }
+    #page1.show {
+      opacity: 1;
+    }
+
+    /* Mobile sizing tweaks */
+    @media (max-width: 480px) {
+      #tapHeart { font-size: 96px; }
+    }
+
+
+
+  </style>
+</head>
+<body>
+<!-- ===== Intro Overlay ===== -->
+<div id="introOverlay">
+  <div id="introPattern"></div>
+
+  <div id="tapHeartWrap">
+    <div id="tapHeart">❤️</div>
+    <div id="tapLabel">Tap me</div>
+  </div>
+</div>
+
+<div id="heartContainer"></div>
+
+
+<!-- PAGE 1: Landing -->
+<div id="page1">
+  <h1>Hey… ready for a little adventure? 😉</h1>
+  <button id="startBtn">Start</button>
+</div>
+
+<!-- PAGE 2: Choice Adventure -->
+<div id="page2" class="hidden">
+  <h1>Pick your favorite for fun:</h1>
+  <button class="choiceBtn" data-msg="Coffee lovers are the best… like you 😉">Coffee ☕</button>
+  <button class="choiceBtn" data-msg="Movie nights are better with smiles 😏">Movie 🎬</button>
+</div>
+
+<!-- PAGE 3: Mini Puzzle / Secret Message -->
+<div id="page3" class="hidden">
+  <h1>Click all the hearts to unlock a secret 💖</h1>
+  <div id="puzzleHearts"></div>
+</div>
+
+<!-- PAGE 4: Valentine Yes/No -->
+<div id="page4" class="hidden">
+  <h1>Will you be my Valentine? 😏</h1>
+  <button id="yesBtn">Yes ❤️</button>
+  <button id="noBtn">No ❌</button>
+  <p id="valentineMsg"></p>
+</div>
+
+<!-- PAGE 5: Final Fun -->
+<div id="page5" class="hidden">
+  <h1 id="finalMsg"></h1>
+  <canvas id="confetti"></canvas>
+</div>
+/* ===== Intro Overlay Logic ===== */
+const introOverlay = document.getElementById('introOverlay');
+const tapHeart = document.getElementById('tapHeart');
+
+function startIntroTransition() {
+// Big heart blast
+introOverlay.classList.add('blast');
+
+// After blast grows, fade overlay out
+setTimeout(() => {
+introOverlay.classList.add('fadeOut');
+
+// Reveal your existing first page
+const p1 = document.getElementById('page1');
+if (p1) p1.classList.add('show');
+
+// Remove overlay from DOM after animation
+setTimeout(() => {
+introOverlay.remove();
+}, 900);
+}, 300);
+}
+
+// Tap/click friendly for iOS
+tapHeart.addEventListener('click', startIntroTransition);
+tapHeart.addEventListener('touchend', (e) => {
+e.preventDefault();
+startIntroTransition();
+}, { passive: false });
+
+
+<script>
+
+  function showMessage(msg) {
+    const message = document.createElement('div');
+    message.className = 'message show';
+    message.textContent = msg;
+    document.body.appendChild(message);
+
+    // Fade out after 2.5 seconds
+    setTimeout(() => {
+      message.classList.remove('show');
+      setTimeout(() => message.remove(), 500);
+    }, 2500);
+  }
+
+  // GLOBAL VARIABLES
+  let noClickCount = 0;
+
+  // PAGE NAVIGATION
+  const page1 = document.getElementById('page1');
+  const page2 = document.getElementById('page2');
+  const page3 = document.getElementById('page3');
+  const page4 = document.getElementById('page4');
+  const page5 = document.getElementById('page5');
+
+  document.getElementById('startBtn').onclick = () => {
+    page1.classList.add('hidden');
+    page2.classList.remove('hidden');
+  }
+
+  // PAGE 2 CHOICES
+  document.querySelectorAll('.choiceBtn').forEach(btn => {
+    btn.onclick = () => {
+      showMessage(btn.dataset.msg); // cute message popup
+      page2.classList.add('hidden');
+      page3.classList.remove('hidden');
+      createPuzzleHearts();
+    }
+  });
+
+  // PAGE 3 PUZZLE
+  function createPuzzleHearts() {
+    const puzzleHearts = document.getElementById('puzzleHearts');
+    puzzleHearts.innerHTML = '';
+    let heartsClicked = 0;
+    for (let i=0; i<5; i++) {
+      let heart = document.createElement('span');
+      heart.textContent = '💖';
+      heart.style.fontSize = '40px';
+      heart.style.margin = '10px';
+      heart.style.cursor = 'pointer';
+      heart.onclick = () => {
+        heart.style.visibility = 'hidden';
+        heartsClicked++;
+        if (heartsClicked === 5) {
+          alert("You unlocked a special message 😏");
+          page3.classList.add('hidden');
+          page4.classList.remove('hidden');
+        }
+      }
+      puzzleHearts.appendChild(heart);
+    }
+  }
+
+  // PAGE 4 VALENTINE YES/NO
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const valentineMsg = document.getElementById('valentineMsg');
+
+  yesBtn.onclick = () => {
+    yesBtn.classList.add('grow');
+    valentineMsg.textContent = "Yay! You made my day 😍, ain't you the sweetest.";
+    confettiFun();
+  };
+
+  noBtn.onclick = () => {
+    noClickCount++;
+    if (noClickCount >= 4) {
+      valentineMsg.textContent = "Oh… that's a shame 😢 Maybe next time 😉";
+      noBtn.style.display = 'none';
+    } else {
+      // move No button to random position
+      noBtn.style.position = 'absolute';
+      noBtn.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+      noBtn.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+    }
+  }
+
+  // CONFETTI FUN
+  function confettiFun() {
+    page5.classList.remove('hidden');
+    page4.classList.add('hidden');
+    document.getElementById('finalMsg').textContent = "Thanks for playing 😏";
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+    for (let i=0; i<100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random()*5 + 2,
+        d: Math.random()*2 + 1,
+        color: `hsl(${Math.random()*360}, 100%, 50%)`
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for (let p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        p.y += p.d;
+        if (p.y > canvas.height) p.y = -10;
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // Optional: Hearts floating background
+  function floatingHearts() {
+    const heart = document.createElement('div');
+    heart.className = 'heart';
+    heart.style.left = Math.random()*window.innerWidth + 'px';
+    heart.textContent = '💖';
+    document.body.appendChild(heart);
+    setTimeout(() => heart.remove(), 3000);
+  }
+  setInterval(floatingHearts, 500);
+
+  const heartContainer = document.getElementById("heartContainer");
+
+  function createHeart() {
+
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.innerHTML = "❤️";
+
+    heart.style.left = Math.random() * 100 + "vw";
+    heart.style.fontSize = 15 + Math.random() * 25 + "px";
+    heart.style.animationDuration = 4 + Math.random() * 4 + "s";
+
+    heartContainer.appendChild(heart);
+
+    setTimeout(() => {
+      heart.remove();
+    }, 8000);
+  }
+
+  setInterval(createHeart, 300);
+
+  /* -------- Landing Fade In -------- */
+
+  window.onload = () => {
+    document.getElementById("page1").classList.add("show");
+  };
+</script>
+
+</body>
+</html>
